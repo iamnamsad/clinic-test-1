@@ -4,7 +4,7 @@ from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import get_object_or_404
 from ..models import appoinment
-from ..serializers import appoinment_serializer
+from ..serializers.appoinment_serializer import AppoinmentSerializer  # Import the class, not the module
 
 class AppointmentView(APIView):
     permission_classes = [IsAuthenticated]
@@ -12,16 +12,16 @@ class AppointmentView(APIView):
     def get(self, request, pk=None):
         if pk is not None:
             # Get single appointment
-            appointment = get_object_or_404(Booking, pk=pk, user=request.user)
-            serializer = BookingSerializer(appointment)
+            appointment = get_object_or_404(appoinment.Appoinment, pk=pk, user=request.user)  # Fix model reference
+            serializer = AppoinmentSerializer(appointment)  # Use class name
             return Response({
                 'status': 'success',
                 'data': serializer.data
             })
         else:
             # Get all appointments for the user (if no ID provided)
-            appointments = Booking.objects.filter(user=request.user).select_related('doctor')
-            serializer = BookingSerializer(appointments, many=True)
+            appointments = appoinment.Appoinment.objects.filter(user=request.user).select_related('doctor')
+            serializer = AppoinmentSerializer(appointments, many=True)  # Use class name
             return Response({
                 'status': 'success',
                 'count': len(serializer.data),
@@ -29,7 +29,7 @@ class AppointmentView(APIView):
             })
     
     def post(self, request):
-        serializer = BookingSerializer(
+        serializer = AppoinmentSerializer(  # Use class name
             data=request.data,
             context={'request': request}
         )
@@ -48,11 +48,11 @@ class UserAppointmentListView(APIView):
     permission_classes = [IsAuthenticated]
     
     def get(self, request):
-        appointments = Booking.objects.filter(
+        appointments = appoinment.Appoinment.objects.filter(
             user=request.user
         ).select_related('doctor')
         
-        serializer = BookingSerializer(appointments, many=True)
+        serializer = AppoinmentSerializer(appointments, many=True)  # Use class name
         return Response({
             'status': 'success',
             'count': len(serializer.data),
